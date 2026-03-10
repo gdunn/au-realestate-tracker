@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Addresses</title>
+</head>
+<body>
+    <h1>Addresses</h1>
+    <p>
+        Sort by:
+        <a href="?sort=date">date entered</a> |
+        <a href="?sort=suburb">suburb</a>
+    </p>
+
+    <table border="1" cellpadding="4" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Street</th>
+                <th>Suburb</th>
+                <th>State</th>
+                <th>Entered</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for addr in addresses %}
+                <tr>
+                    <td>{{ addr.street_address }}</td>
+                    <td>{{ addr.suburb }}</td>
+                    <td>{{ addr.state }}</td>
+                    <td>{{ addr.created_at }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">No addresses yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
