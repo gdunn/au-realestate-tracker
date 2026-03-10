@@ -12,6 +12,15 @@
         <a href="?sort=suburb">suburb</a>
     </p>
 
+    <h2>Add a new address</h2>
+    <form method="post" action="">
+        {% csrf_token %}
+        <label>Street:&nbsp;<input type="text" name="street_address" required></label><br>
+        <label>Suburb:&nbsp;<input type="text" name="suburb" required></label><br>
+        <label>State:&nbsp;<input type="text" name="state" value="{{ default_state }}"></label><br>
+        <button type="submit">Add</button>
+    </form>
+
     <table border="1" cellpadding="4" cellspacing="0">
         <thead>
             <tr>
@@ -19,6 +28,7 @@
                 <th>Suburb</th>
                 <th>State</th>
                 <th>Entered</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -28,6 +38,12 @@
                     <td>{{ addr.suburb }}</td>
                     <td>{{ addr.state }}</td>
                     <td>{{ addr.created_at }}</td>
+                    <td>
+                        <form method="post" action="{% url 'address_delete' addr.pk %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
                 </tr>
             {% empty %}
                 <tr><td colspan="4">No addresses yet.</td></tr>

@@ -47,3 +47,26 @@ class AddressListViewTests(TestCase):
         self.assertIn("1 A St", content)
         self.assertIn("Alpha", content)
         self.assertIn("3 C St", content)
+
+    def test_can_add_address_via_post(self):
+        data = {"street_address": "9 New Rd", "suburb": "Newtown", "state": "WA"}
+        resp = self.client.post(reverse("address_list"), data)
+        # should redirect back
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(Address.objects.filter(street_address="9 New Rd").exists())
+
+    def test_form_prefills_default_state(self):
+        AddressConfig.objects.create(default_state="TAS")
+        resp = self.client.get(reverse("address_list"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('value="TAS"', resp.content.decode())
+
+    def test_can_delete_address_via_post(self):
+        addr = Address.objects.create(
+            street_address="33 To Delete", suburb="Gone", state="VIC"
+        )
+        resp = self.client.post(
+            reverse("address_delete", args=[addr.pk])
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertFalse(Address.objects.filter(pk=addr.pk).exists())

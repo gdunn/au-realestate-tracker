@@ -32,6 +32,7 @@ This is a Django project called **au-realestate-tracker**.
 
 - Contains a simple `Address` model and administration interface.
 - Front‑end listing available at `/addresses/` with sorting options by date or suburb.
+- Anonymous visitors can add new addresses and delete existing ones via simple forms on that page.
 - Default `state` value is configurable via the admin under the single
   `Address configuration` object.
 
