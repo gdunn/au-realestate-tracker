@@ -10,6 +10,9 @@ jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
     environment: hostingdotcom
+    env:
+      # environment variables defined in the GitHub environment are exposed via the `vars` context
+      FTP_HOSTNAME: ${{ vars.FTP_HOSTNAME }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,7 +22,8 @@ jobs:
 
       - name: Show values
         run: | 
-          echo "Hostname: ${{ env.FTP_HOSTNAME }}"
+          # the environment variable was populated at job level from vars
+          echo "Hostname: $FTP_HOSTNAME"
           echo "Username: ${{ secrets.FTP_USERNAME }}"
 
       - name: Upload via FTP
