@@ -65,8 +65,6 @@ class AddressListViewTests(TestCase):
         addr = Address.objects.create(
             street_address="33 To Delete", suburb="Gone", state="VIC"
         )
-        resp = self.client.post(
-            reverse("address_delete", args=[addr.pk])
-        )
+        resp = self.client.post(reverse("address_delete", args=[addr.pk]))
         self.assertEqual(resp.status_code, 302)
         self.assertFalse(Address.objects.filter(pk=addr.pk).exists())

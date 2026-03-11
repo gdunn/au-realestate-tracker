@@ -3,7 +3,6 @@ from django.urls import reverse
 
 from .models import Address
 
-
 # simple list view for addresses; sorting is controlled via the ``sort``
 # query parameter, which currently supports ``date`` (default) and ``suburb``.
 #
@@ -25,9 +24,7 @@ def address_list(request):
         suburb = request.POST.get("suburb", "").strip()
         state = request.POST.get("state", "").strip()
         if street and suburb:
-            Address.objects.create(
-                street_address=street, suburb=suburb, state=state
-            )
+            Address.objects.create(street_address=street, suburb=suburb, state=state)
         # redirect to avoid duplicate POST on refresh
         return redirect(reverse("address_list"))
 
