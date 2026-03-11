@@ -19,7 +19,7 @@ jobs:
 
       - name: Show values
         run: | 
-          echo "Hostname: $FTP_HOSTNAME"
+          echo "Hostname: ${{ env.FTP_HOSTNAME }}"
           echo "Username: ${{ secrets.FTP_USERNAME }}"
 
       - name: Upload via FTP
