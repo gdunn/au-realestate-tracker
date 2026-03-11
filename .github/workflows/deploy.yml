@@ -17,6 +17,14 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
+      - name: Show environment
+        run: echo "Environment: $GITHUB_ENV"
+
+      - name: Show values
+        run: | 
+          echo "Hostname: $FTP_HOSTNAME"
+          echo "Username: ${{ secrets.FTP_USERNAME }}"
+
       - name: Upload via FTP
         env:
           FTP_HOSTNAME: ${{ env.FTP_HOSTNAME }}
