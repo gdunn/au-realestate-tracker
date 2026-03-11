@@ -19,10 +19,12 @@ jobs:
 
       - name: Upload via FTP
         env:
+          FTP_HOSTNAME: ${{ env.FTP_HOSTNAME }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
           # iterate through files and upload excluding patterns
+          echo "Connecting to $FTP_HOSTNAME with user $FTP_USERNAME"
           find . -type f \
             ! -path "./.github/*" \
             ! -path "./.git/*" \
