@@ -19,7 +19,8 @@ jobs:
 
       - name: Show environment
         run: |
-          echo "Environment: $GITHUB_ENV"
+          # github context provides the environment name through the job object
+          echo "Environment: ${{ job.environment }}"
 
       - name: Show values
         run: | 
