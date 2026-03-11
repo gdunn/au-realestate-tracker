@@ -9,7 +9,7 @@ on:
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
-    environment: hostnamedotcom
+    environment: hostingdotcom
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
