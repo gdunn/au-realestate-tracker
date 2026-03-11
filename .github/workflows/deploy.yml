@@ -20,12 +20,6 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Show values
-        run: | 
-          # the environment variable was populated at job level from vars
-          echo "Hostname: $FTP_HOSTNAME"
-          echo "Username: ${{ secrets.FTP_USERNAME }}"
-
       - name: Upload via FTP
         env:
           FTP_HOSTNAME: ${{ env.FTP_HOSTNAME }}
@@ -34,6 +28,7 @@ jobs:
         run: |
           # iterate through files and upload excluding patterns
           echo "Connecting to $FTP_HOSTNAME with user $FTP_USERNAME"
+          set ssl:verify-certificate no
           find . -type f \
             ! -path "./.github/*" \
             ! -path "./.git/*" \
