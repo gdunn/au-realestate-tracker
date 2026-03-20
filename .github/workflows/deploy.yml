@@ -12,7 +12,14 @@ jobs:
     environment: hostingdotcom
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Install requirements
+        run: |
+          set -e
+          # Configure SSH to skip host key checks in CI
+          printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n' > ~/.ssh/config
+          chmod 600 ~/.ssh/config
 
       - name: Prepare SSH key
         env:
@@ -30,26 +37,9 @@ jobs:
           SSH_USERNAME: warmagec
         run: |
           set -e
-          # Ensure key exists
-          if [ ! -f ~/.ssh/deploy_key ]; then
-            echo "Error: SSH key not found at ~/.ssh/deploy_key"
-            ls -la ~/.ssh
-            exit 1
-          fi
-
-          # Configure SSH to skip host key checks in CI
-          printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n' > ~/.ssh/config
-          chmod 600 ~/.ssh/config
-
           # Start ssh-agent and add key with passphrase
           eval "$(ssh-agent -s)"
-          sudo apt-get update && sudo apt-get install -y expect
-          expect <<'EOF'
-            spawn ssh-add ~/.ssh/deploy_key
-            expect "Enter passphrase for ~/.ssh/deploy_key:"
-            send "$env(SSH_CERT_PASSWORD)\r"
-            expect eof
-          EOF
+          echo "$SSH_CERT_PASSWORD" | ssh-add ~/.ssh/deploy_key
 
           # Ensure remote directory exists
           ssh -o StrictHostKeyChecking=no "$SSH_USERNAME@$SSH_HOSTNAME" "mkdir -p /home/warmagec/realestate"
@@ -62,4 +52,3 @@ jobs:
             --exclude='**/__pycache__/**' \
             -e "ssh -o StrictHostKeyChecking=no" \
             ./ "$SSH_USERNAME@$SSH_HOSTNAME:/home/warmagec/realestate/"
-
