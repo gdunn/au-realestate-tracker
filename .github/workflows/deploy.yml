@@ -30,6 +30,13 @@ jobs:
           SSH_USERNAME: warmagec
         run: |
           set -e
+          # Ensure key exists
+          if [ ! -f ~/.ssh/deploy_key ]; then
+            echo "Error: SSH key not found at ~/.ssh/deploy_key"
+            ls -la ~/.ssh
+            exit 1
+          fi
+
           # Configure SSH to skip host key checks in CI
           printf 'Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n' > ~/.ssh/config
           chmod 600 ~/.ssh/config
