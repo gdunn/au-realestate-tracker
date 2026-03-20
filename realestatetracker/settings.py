@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-7rf*08!6v9byqfr=4hkttyurywse+)u9*ymp0xm0$(eo_ue=qw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['misterpink.com.au', 'localhost', '127.0.0.1']
 
 
 # Application definition
