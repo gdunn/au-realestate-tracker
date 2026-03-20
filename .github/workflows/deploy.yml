@@ -36,7 +36,7 @@ jobs:
 
           # Start ssh-agent and add key with passphrase
           eval "$(ssh-agent -s)"
-          apt-get update && apt-get install -y expect
+          sudo apt-get update && sudo apt-get install -y expect
           expect <<'EOF'
             spawn ssh-add ~/.ssh/deploy_key
             expect "Enter passphrase for ~/.ssh/deploy_key:"
