@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AU Real Estate Tracker</title>
+</head>
+<body>
+    <h1>Welcome to AU Real Estate Tracker</h1>
+    {% if user.is_authenticated %}
+        <p>Hello, {{ user.username }}!</p>
+        <p><a href="{% url 'address_list' %}">View Addresses</a></p>
+        {% if user.is_staff %}
+            <p><a href="{% url 'admin:index' %}">Admin</a></p>
+        {% endif %}
+        <p><a href="{% url 'logout' %}">Logout</a></p>
+    {% else %}
+        <p>Please log in to access the address tracker.</p>
+        <p><a href="{% url 'login' %}">Login</a></p>
+    {% endif %}
+</body>
+</html>

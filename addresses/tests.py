@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 from .models import Address, AddressConfig
 
@@ -21,6 +22,10 @@ class AddressModelTests(TestCase):
 
 class AddressListViewTests(TestCase):
     def setUp(self):
+        # create a test user and log in
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.client.login(username="testuser", password="testpass")
+
         # create some addresses with specific created_at ordering using save()
         Address.objects.create(street_address="1 A St", suburb="Alpha", state="NSW")
         Address.objects.create(street_address="2 B St", suburb="Beta", state="VIC")

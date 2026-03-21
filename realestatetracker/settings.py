@@ -56,7 +56,7 @@ ROOT_URLCONF = "realestatetracker.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -118,3 +118,7 @@ USE_TZ = True
 
 STATIC_URL = "realestate_static/"
 STATIC_ROOT = "/home/warmagec/misterpink.com.au/realestate_static/"
+
+# Authentication settings
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "home"

@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
 from .models import Address
+
 
 # simple list view for addresses; sorting is controlled via the ``sort``
 # query parameter, which currently supports ``date`` (default) and ``suburb``.
@@ -14,9 +16,7 @@ from .models import Address
 #
 # Deletions are submitted to ``address_delete`` (below), which requires a POST
 # to avoid accidental GET deletions.
-#
-
-
+@login_required
 def address_list(request):
     if request.method == "POST":
         # creation form submitted
@@ -47,6 +47,7 @@ def address_list(request):
     )
 
 
+@login_required
 def address_delete(request, pk):
     # simply remove the object and redirect back
     if request.method == "POST":
