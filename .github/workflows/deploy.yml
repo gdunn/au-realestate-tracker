@@ -43,7 +43,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no "$SSH_USERNAME@$SSH_HOSTNAME" "mkdir -p /home/warmagec/realestate"
 
           # Upload files while excluding unwanted files/directories
-          rsync -av --delete \
+          rsync -av \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='db.sqlite3' \
