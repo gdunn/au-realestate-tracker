@@ -54,7 +54,7 @@ class AddressListViewTests(TestCase):
         self.assertIn("3 C St", content)
 
     def test_can_add_address_via_post(self):
-        data = {"street_address": "9 New Rd", "suburb": "Newtown", "state": "WA"}
+        data = {"address_input": "9 New Rd, Newtown WA"}
         resp = self.client.post(reverse("address_list"), data)
         # should redirect back
         self.assertEqual(resp.status_code, 302)
@@ -62,9 +62,10 @@ class AddressListViewTests(TestCase):
 
     def test_form_prefills_default_state(self):
         AddressConfig.objects.create(default_state="TAS")
-        resp = self.client.get(reverse("address_list"))
-        self.assertEqual(resp.status_code, 200)
-        self.assertIn('value="TAS"', resp.content.decode())
+        # Test that default state is applied when saving an address without state
+        addr = Address(street_address="123 Test St", suburb="Test Suburb", state="")
+        addr.save()
+        self.assertEqual(addr.state, "TAS")
 
     def test_can_delete_address_via_post(self):
         addr = Address.objects.create(
@@ -73,3 +74,57 @@ class AddressListViewTests(TestCase):
         resp = self.client.post(reverse("address_delete", args=[addr.pk]))
         self.assertEqual(resp.status_code, 302)
         self.assertFalse(Address.objects.filter(pk=addr.pk).exists())
+
+
+from unittest.mock import MagicMock
+
+
+class ScraperURLTests(TestCase):
+    def test_search_url_from_address(self):
+        from .utils import RealEstateScraper
+
+        addr = Address(
+            street_address="52B Stone Street", suburb="Earlwood", state="NSW"
+        )
+        scraper = RealEstateScraper()
+
+        candidate_urls = scraper.get_candidate_property_urls(addr)
+
+        self.assertIn(
+            "https://www.realestate.com.au/property/52b-stone-street-earlwood-nsw-2206/",
+            candidate_urls,
+        )
+        self.assertIn(
+            "https://www.domain.com.au/52b-stone-street-earlwood-nsw-2206",
+            candidate_urls,
+        )
+        self.assertIn(
+            "https://www.realestate.com.au/property/52b-stone-street-earlwood-nsw/",
+            candidate_urls,
+        )
+        self.assertIn(
+            "https://www.domain.com.au/52b-stone-street-earlwood-nsw",
+            candidate_urls,
+        )
+
+    def test_find_first_live_property_url_uses_candidates(self):
+        from .utils import RealEstateScraper
+
+        class Resp:
+            def __init__(self, status_code):
+                self.status_code = status_code
+
+        addr = Address(
+            street_address="52B Stone Street", suburb="Earlwood", state="NSW"
+        )
+        scraper = RealEstateScraper()
+
+        # first HEAD: 404, second HEAD: 200
+        scraper.session.head = MagicMock(side_effect=[Resp(404), Resp(200)])
+        scraper.session.get = MagicMock(return_value=Resp(200))
+
+        url = scraper.find_first_live_property_url(addr)
+        self.assertIsNotNone(url)
+
+        # verify we called head at least once
+        self.assertTrue(scraper.session.head.called)

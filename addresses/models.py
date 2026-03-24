@@ -38,3 +38,32 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.street_address}, {self.suburb} {self.state}"
+
+
+class PropertyInfo(models.Model):
+    """Information scraped from real estate websites about a property."""
+
+    address = models.ForeignKey(
+        Address, on_delete=models.CASCADE, related_name="property_info"
+    )
+    is_for_sale = models.BooleanField(default=False)
+    sale_type = models.CharField(
+        max_length=50, blank=True, help_text="auction, sale, etc."
+    )
+    price_info = models.CharField(
+        max_length=200, blank=True, help_text="Price, guide, or 'contact agent'"
+    )
+    next_inspection = models.DateTimeField(null=True, blank=True)
+    auction_date = models.DateTimeField(null=True, blank=True)
+    last_sale_price = models.CharField(max_length=100, blank=True)
+    scraped_at = models.DateTimeField(auto_now=True)
+    source_domain = models.CharField(
+        max_length=100, help_text="domain.com.au or realestate.com.au"
+    )
+
+    class Meta:
+        verbose_name = "Property Information"
+        verbose_name_plural = "Property Information"
+
+    def __str__(self):
+        return f"Property info for {self.address} from {self.source_domain}"

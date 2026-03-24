@@ -118,6 +118,7 @@
                 <th>Suburb</th>
                 <th>State</th>
                 <th>Entered</th>
+                <th>Property Status</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -129,6 +130,28 @@
                     <td>{{ addr.state }}</td>
                     <td>{{ addr.created_at|date:"M d, Y H:i" }}</td>
                     <td>
+                        {% if addr.property_info.all %}
+                            {% for info in addr.property_info.all %}
+                                <div style="margin-bottom: 10px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <strong>{{ info.source_domain }}</strong><br>
+                                    {% if info.is_for_sale %}
+                                        <span style="color: green;">For Sale</span> - {{ info.sale_type|title }}<br>
+                                        Price: {{ info.price_info }}<br>
+                                        {% if info.next_inspection %}Next Inspection: {{ info.next_inspection|date:"M d, Y H:i" }}<br>{% endif %}
+                                        {% if info.auction_date %}Auction: {{ info.auction_date|date:"M d, Y H:i" }}<br>{% endif %}
+                                    {% else %}
+                                        <span style="color: red;">Not For Sale</span><br>
+                                        {% if info.last_sale_price %}Last Sale: {{ info.last_sale_price }}{% endif %}
+                                    {% endif %}
+                                    <small>Updated: {{ info.scraped_at|date:"M d, Y H:i" }}</small>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <em>No data scraped yet</em>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button onclick="scrapeProperty({{ addr.pk }})" class="scrape-btn" style="background-color: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;">Scrape</button>
                         <form method="post" action="{% url 'address_delete' addr.pk %}" style="display:inline">
                             {% csrf_token %}
                             <button type="submit" class="delete-btn">Delete</button>
@@ -136,9 +159,42 @@
                     </td>
                 </tr>
             {% empty %}
-                <tr><td colspan="5">No addresses yet.</td></tr>
+                <tr><td colspan="6">No addresses yet.</td></tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        function scrapeProperty(addressId) {
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = 'Scraping...';
+            button.disabled = true;
+
+            fetch(`/addresses/scrape/${addressId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Refresh to show updated data
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            })
+            .finally(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+            });
+        }
+    </script>
 </body>
 </html>
