@@ -20,11 +20,28 @@ from .models import Address
 def address_list(request):
     if request.method == "POST":
         # creation form submitted
-        street = request.POST.get("street_address", "").strip()
-        suburb = request.POST.get("suburb", "").strip()
-        state = request.POST.get("state", "").strip()
-        if street and suburb:
-            Address.objects.create(street_address=street, suburb=suburb, state=state)
+        address_input = request.POST.get("address_input", "").strip()
+        if address_input:
+            # Parse the input: support "street, suburb", "street\tsuburb", or "street suburb"
+            if "," in address_input:
+                parts = address_input.split(",", 1)  # split on first comma
+                street = parts[0].strip()
+                suburb = parts[1].strip() if len(parts) > 1 else ""
+            elif "\t" in address_input:
+                parts = address_input.split("\t", 1)
+                street = parts[0].strip()
+                suburb = parts[1].strip() if len(parts) > 1 else ""
+            else:
+                # Fallback: split by last space
+                last_space = address_input.rfind(" ")
+                if last_space > 0:
+                    street = address_input[:last_space].strip()
+                    suburb = address_input[last_space:].strip()
+                else:
+                    street = address_input
+                    suburb = ""
+            if street:
+                Address.objects.create(street_address=street, suburb=suburb)
         # redirect to avoid duplicate POST on refresh
         return redirect(reverse("address_list"))
 
