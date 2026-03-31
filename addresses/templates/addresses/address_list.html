@@ -91,7 +91,81 @@
         .delete-btn:hover {
             background-color: #c82333;
         }
+        .find-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .find-btn:hover {
+            background-color: #0056b3;
+        }
+        .url-results {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        .url-link {
+            display: block;
+            margin: 5px 0;
+            word-break: break-all;
+        }
     </style>
+    <script>
+        function findPropertyURLs(addressId, button) {
+            button.disabled = true;
+            button.textContent = 'Searching...';
+
+            fetch(`/addresses/find-urls/${addressId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                button.disabled = false;
+                button.textContent = 'Find URLs';
+
+                const row = button.closest('tr');
+                let resultsDiv = row.querySelector('.url-results');
+                if (!resultsDiv) {
+                    resultsDiv = document.createElement('div');
+                    resultsDiv.className = 'url-results';
+                    row.appendChild(resultsDiv);
+                }
+
+                if (data.found_urls.length > 0) {
+                    resultsDiv.innerHTML = `<strong>Found ${data.count} URL(s) for "${data.address}":</strong>`;
+                    data.found_urls.forEach(url => {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.target = '_blank';
+                        link.className = 'url-link';
+                        link.textContent = url;
+                        resultsDiv.appendChild(link);
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<strong>No URLs found for "${data.address}"</strong>`;
+                }
+
+                resultsDiv.style.display = 'block';
+            })
+            .catch(error => {
+                button.disabled = false;
+                button.textContent = 'Find URLs';
+                console.error('Error:', error);
+                alert('Error searching for URLs. Check console for details.');
+            });
+        }
+    </script>
 </head>
 <body>
     <h1>Addresses</h1>
@@ -107,6 +181,8 @@
         {% csrf_token %}
         <label for="address_input">Paste address (e.g., "14 Weil Avenue	Croydon Park" or "3a King Edward Street, Croydon"):</label>
         <textarea name="address_input" id="address_input" placeholder="Paste tab-separated, comma-separated, or space-separated address here" required></textarea><br><br>
+        <label for="state">State (optional, defaults to {{ default_state }}):</label>
+        <input type="text" name="state" id="state" value="{{ default_state }}"><br><br>
         <button type="submit">Add Address</button>
     </form>
 
@@ -129,6 +205,7 @@
                     <td>{{ addr.state }}</td>
                     <td>{{ addr.created_at|date:"M d, Y H:i" }}</td>
                     <td>
+                        <button class="find-btn" onclick="findPropertyURLs({{ addr.pk }}, this)">Find URLs</button>
                         <form method="post" action="{% url 'address_delete' addr.pk %}" style="display:inline">
                             {% csrf_token %}
                             <button type="submit" class="delete-btn">Delete</button>

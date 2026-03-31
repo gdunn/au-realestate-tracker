@@ -54,7 +54,7 @@ class AddressListViewTests(TestCase):
         self.assertIn("3 C St", content)
 
     def test_can_add_address_via_post(self):
-        data = {"street_address": "9 New Rd", "suburb": "Newtown", "state": "WA"}
+        data = {"address_input": "9 New Rd, Newtown WA"}
         resp = self.client.post(reverse("address_list"), data)
         # should redirect back
         self.assertEqual(resp.status_code, 302)

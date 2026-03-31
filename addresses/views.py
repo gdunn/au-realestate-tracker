@@ -1,8 +1,11 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 from .models import Address
+from .utils import PropertyURLFinder
 
 
 # simple list view for addresses; sorting is controlled via the ``sort``
@@ -21,6 +24,7 @@ def address_list(request):
     if request.method == "POST":
         # creation form submitted
         address_input = request.POST.get("address_input", "").strip()
+        state_input = request.POST.get("state", "").strip()
         if address_input:
             # Parse the input: support "street, suburb", "street\tsuburb", or "street suburb"
             if "," in address_input:
@@ -41,7 +45,20 @@ def address_list(request):
                     street = address_input
                     suburb = ""
             if street:
-                Address.objects.create(street_address=street, suburb=suburb)
+                # Use provided state or parsed suburb if it looks like a state
+                state = state_input or ""
+                if not state and suburb:
+                    # Check if suburb ends with a state abbreviation
+                    suburb_upper = suburb.upper()
+                    if suburb_upper.endswith(
+                        (" NSW", " VIC", " QLD", " WA", " SA", " TAS", " ACT", " NT")
+                    ):
+                        parts = suburb.rsplit(" ", 1)
+                        suburb = parts[0]
+                        state = parts[1]
+                Address.objects.create(
+                    street_address=street, suburb=suburb, state=state
+                )
         # redirect to avoid duplicate POST on refresh
         return redirect(reverse("address_list"))
 
@@ -64,10 +81,33 @@ def address_list(request):
     )
 
 
+@require_POST
+@login_required
+def find_property_urls(request, pk):
+    """AJAX endpoint to find property URLs for an address."""
+    addr = get_object_or_404(Address, pk=pk)
+
+    # Create full address string for searching
+    full_address = f"{addr.street_address}, {addr.suburb}"
+    if addr.state:
+        full_address += f", {addr.state}"
+
+    finder = PropertyURLFinder()
+    found_urls = finder.find_property_urls(full_address)
+
+    return JsonResponse(
+        {
+            "address": full_address,
+            "found_urls": found_urls,
+            "count": len(found_urls),
+        }
+    )
+
+
+@require_POST
 @login_required
 def address_delete(request, pk):
-    # simply remove the object and redirect back
-    if request.method == "POST":
-        addr = get_object_or_404(Address, pk=pk)
-        addr.delete()
+    """Delete an address."""
+    addr = get_object_or_404(Address, pk=pk)
+    addr.delete()
     return redirect(reverse("address_list"))

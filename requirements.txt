@@ -1,2 +1,5 @@
 django
 black
+requests
+beautifulsoup4
+lxml
