@@ -32,9 +32,11 @@ def address_list(request):
                 street = parts[0].strip()
                 suburb = parts[1].strip() if len(parts) > 1 else ""
             elif "\t" in address_input:
-                parts = address_input.split("\t", 1)
-                street = parts[0].strip()
-                suburb = parts[1].strip() if len(parts) > 1 else ""
+                parts = [part.strip() for part in address_input.split("\t") if part.strip()]
+                street = parts[0] if len(parts) > 0 else ""
+                suburb = parts[1] if len(parts) > 1 else ""
+                if not state_input and len(parts) > 2:
+                    state_input = parts[2]
             else:
                 # Fallback: split by last space
                 last_space = address_input.rfind(" ")

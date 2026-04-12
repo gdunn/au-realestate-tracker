@@ -131,11 +131,14 @@
         }
     </style>
     <script>
+        const findUrlsPathTemplate = "{% url 'find_property_urls' 0 %}";
+
         function findPropertyURLs(addressId, button) {
             button.disabled = true;
             button.textContent = 'Searching...';
 
-            fetch(`/addresses/find-urls/${addressId}/`, {
+            const endpoint = findUrlsPathTemplate.replace('/0/', `/${addressId}/`);
+            fetch(endpoint, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
