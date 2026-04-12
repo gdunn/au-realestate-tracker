@@ -137,13 +137,26 @@
 
             fetch(`/addresses/find-urls/${addressId}/`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 },
                 body: JSON.stringify({})
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw { status: response.status, text };
+                    });
+                }
+                return response.json().catch(err => {
+                    return response.text().then(text => {
+                        throw { status: response.status, text, parseError: err };
+                    });
+                });
+            })
             .then(data => {
                 button.disabled = false;
                 button.textContent = 'Find URLs';
@@ -210,8 +223,38 @@
             .catch(error => {
                 button.disabled = false;
                 button.textContent = 'Find URLs';
-                console.error('Error:', error);
-                alert('Error searching for URLs. Check console for details.');
+                const row = button.closest('tr');
+                let resultsDiv = row.querySelector('.url-results');
+                if (!resultsDiv) {
+                    resultsDiv = document.createElement('div');
+                    resultsDiv.className = 'url-results';
+                    row.appendChild(resultsDiv);
+                }
+
+                resultsDiv.innerHTML = `<strong>Error searching for URLs</strong>`;
+                const errorList = document.createElement('ul');
+                errorList.className = 'url-diagnostics-list';
+
+                const statusItem = document.createElement('li');
+                statusItem.textContent = `HTTP status: ${error.status || 'unknown'}`;
+                errorList.appendChild(statusItem);
+
+                if (error.text) {
+                    const bodyItem = document.createElement('li');
+                    const textSnippet = error.text.slice(0, 400).replace(/\s+/g, ' ');
+                    bodyItem.textContent = `Response body: ${textSnippet}`;
+                    errorList.appendChild(bodyItem);
+                }
+
+                if (error.parseError) {
+                    const parseItem = document.createElement('li');
+                    parseItem.textContent = 'Response was not valid JSON.';
+                    errorList.appendChild(parseItem);
+                }
+
+                resultsDiv.appendChild(errorList);
+                resultsDiv.style.display = 'block';
+                console.error('AJAX JSON error:', error);
             });
         }
     </script>

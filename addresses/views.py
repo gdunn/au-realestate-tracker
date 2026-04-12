@@ -82,9 +82,14 @@ def address_list(request):
 
 
 @require_POST
-@login_required
 def find_property_urls(request, pk):
     """AJAX endpoint to find property URLs for an address."""
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"error": "Authentication required", "diagnostics": {}},
+            status=401,
+        )
+
     addr = get_object_or_404(Address, pk=pk)
 
     # Create full address string for searching

@@ -99,3 +99,14 @@ class AddressListViewTests(TestCase):
             data["diagnostics"]["search_url"],
             "https://www.realestate.com.au/fake-search",
         )
+
+    def test_find_property_urls_returns_json_for_unauthenticated_user(self):
+        self.client.logout()
+        addr = Address.objects.create(
+            street_address="99 Debug Lane", suburb="Inspect", state="WA"
+        )
+        resp = self.client.post(reverse("find_property_urls", args=[addr.pk]))
+        self.assertEqual(resp.status_code, 401)
+        data = resp.json()
+        self.assertEqual(data["error"], "Authentication required")
+        self.assertEqual(data["diagnostics"], {})
