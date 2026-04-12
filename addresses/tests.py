@@ -95,4 +95,7 @@ class AddressListViewTests(TestCase):
         self.assertEqual(data["count"], 0)
         self.assertEqual(data["found_urls"], [])
         self.assertIn("diagnostics", data)
-        self.assertEqual(data["diagnostics"]["search_url"], "https://www.realestate.com.au/fake-search")
+        self.assertEqual(
+            data["diagnostics"]["search_url"],
+            "https://www.realestate.com.au/fake-search",
+        )

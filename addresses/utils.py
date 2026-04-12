@@ -77,7 +77,9 @@ class PropertyURLFinder:
                 exc,
             )
             diagnostics["error"] = str(exc)
-            diagnostics["http_status"] = getattr(getattr(exc, "response", None), "status_code", None)
+            diagnostics["http_status"] = getattr(
+                getattr(exc, "response", None), "status_code", None
+            )
             return {"urls": [], "diagnostics": diagnostics}
 
         urls, parse_info = self.parse_realestate_search_results(response.text)
