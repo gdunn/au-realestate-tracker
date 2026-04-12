@@ -26,8 +26,10 @@ class PropertyURLFinder:
         """Parse realestate.com.au search HTML and return property detail URLs."""
         soup = BeautifulSoup(html, "html.parser")
         urls = []
+        anchor_selector = 'a.details-link[href^="/property-"]'
+        anchors = soup.select(anchor_selector)
 
-        for anchor in soup.select('a.details-link[href^="/property-"]'):
+        for anchor in anchors:
             href = anchor.get("href", "").strip()
             if not href:
                 continue
@@ -35,12 +37,23 @@ class PropertyURLFinder:
             if absolute_url not in urls:
                 urls.append(absolute_url)
 
+        page_title = ""
+        if soup.title and soup.title.string:
+            page_title = soup.title.string.strip()
+
+        page_snippet = " ".join(soup.get_text(separator=" ", strip=True).split())[:300]
+
         logger.debug(
             "Parsed %d property URLs from search HTML: %s",
             len(urls),
             urls[:10],
         )
-        return urls
+        return urls, {
+            "anchor_selector": anchor_selector,
+            "anchor_candidates": len(anchors),
+            "page_title": page_title,
+            "page_snippet": page_snippet,
+        }
 
     def find_property_urls(self, address):
         """Find property URLs for an address by scraping realestate.com.au search results."""
@@ -48,6 +61,7 @@ class PropertyURLFinder:
         logger.info("Searching realestate.com.au for address %s", address)
         logger.debug("Realestate search URL: %s", search_url)
 
+        diagnostics = {"search_url": search_url}
         try:
             response = self.session.get(search_url, timeout=10)
             logger.debug(
@@ -62,12 +76,17 @@ class PropertyURLFinder:
                 address,
                 exc,
             )
-            return []
+            diagnostics["error"] = str(exc)
+            diagnostics["http_status"] = getattr(getattr(exc, "response", None), "status_code", None)
+            return {"urls": [], "diagnostics": diagnostics}
 
-        urls = self.parse_realestate_search_results(response.text)
+        urls, parse_info = self.parse_realestate_search_results(response.text)
+        diagnostics["http_status"] = response.status_code
+        diagnostics.update(parse_info)
+
         logger.info(
             "Found %d property URLs for address %s",
             len(urls),
             address,
         )
-        return urls
+        return {"urls": urls, "diagnostics": diagnostics}

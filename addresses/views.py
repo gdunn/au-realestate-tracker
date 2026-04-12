@@ -93,13 +93,16 @@ def find_property_urls(request, pk):
         full_address += f", {addr.state}"
 
     finder = PropertyURLFinder()
-    found_urls = finder.find_property_urls(full_address)
+    result = finder.find_property_urls(full_address)
+    found_urls = result.get("urls", [])
+    diagnostics = result.get("diagnostics", {})
 
     return JsonResponse(
         {
             "address": full_address,
             "found_urls": found_urls,
             "count": len(found_urls),
+            "diagnostics": diagnostics,
         }
     )
 

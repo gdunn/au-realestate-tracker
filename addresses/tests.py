@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from unittest.mock import patch
 
 from .models import Address, AddressConfig
 
@@ -73,3 +74,25 @@ class AddressListViewTests(TestCase):
         resp = self.client.post(reverse("address_delete", args=[addr.pk]))
         self.assertEqual(resp.status_code, 302)
         self.assertFalse(Address.objects.filter(pk=addr.pk).exists())
+
+    @patch("addresses.views.PropertyURLFinder")
+    def test_find_property_urls_returns_diagnostics_when_empty(self, mock_finder_cls):
+        addr = Address.objects.create(
+            street_address="99 Debug Lane", suburb="Inspect", state="WA"
+        )
+        mock_finder = mock_finder_cls.return_value
+        mock_finder.find_property_urls.return_value = {
+            "urls": [],
+            "diagnostics": {
+                "search_url": "https://www.realestate.com.au/fake-search",
+                "http_status": 200,
+            },
+        }
+
+        resp = self.client.post(reverse("find_property_urls", args=[addr.pk]))
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["count"], 0)
+        self.assertEqual(data["found_urls"], [])
+        self.assertIn("diagnostics", data)
+        self.assertEqual(data["diagnostics"]["search_url"], "https://www.realestate.com.au/fake-search")
